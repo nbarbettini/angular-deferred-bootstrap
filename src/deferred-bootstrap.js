@@ -14,9 +14,7 @@ var isObject = angular.isObject,
   loadingShown = false,
   loadingShownLongEnough,
   bodyElement,
-  $q,
-  startTime,
-  endTime;
+  $q;
 
 function onLoadingShowInternal() {
     loadingShown = true;
@@ -126,14 +124,14 @@ function doBootstrap(element, module, bootstrapConfig, beforeInitialize) {
         isLoading = false;
         if (loadingShown) {
             onLoadingHideInternal().then(function () {
+                if (isFunction(beforeInitialize))
+                    beforeInitialize();
                 doBootstrapCore();
             });
         } else {
             loadingShownLongEnough.resolve(true);
             doBootstrapCore();
         }
-
-        endTime = performance.now();
     });
 
     function doBootstrapCore() {
@@ -171,7 +169,7 @@ function bootstrap(configParam) {
     onLoadingHideCallback = onLoadingHide;
     onErrorShowCallback = onErrorShow;
 
-    if (beforeLoading && typeof (beforeLoading) === "function")
+    if (isFunction(beforeLoading))
         beforeLoading();
     isLoading = true;
     loadingShownLongEnough = $q.defer();
@@ -194,8 +192,6 @@ function bootstrap(configParam) {
             loadingShownLongEnough.resolve(true);
         }, showLoadingMinDuration);
     }, showLoadingThreshold);
-
-    startTime = performance.now();
 
     if (config.moduleResolves) {
         forEach(config.moduleResolves, function (moduleResolve, index) {
